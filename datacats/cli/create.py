@@ -22,7 +22,8 @@ def create(opts):
     """Create a new environment
 
 Usage:
-  datacats create [-bni] [--address=IP] [--syslog] [--ckan=CKAN_VERSION] ENVIRONMENT_DIR [PORT]
+  datacats create [-bni] [--address=IP] [--syslog] [--offline] [--ckan=CKAN_VERSION]\
+ ENVIRONMENT_DIR [PORT]
 
 Options:
   --address=IP            Address to listen on (Linux-only) [default: 127.0.0.1]
@@ -32,6 +33,7 @@ Options:
   -i --image-only         Create the environment but don't start containers
   -n --no-sysadmin        Don't prompt for an initial sysadmin user account
   --syslog                Log to the syslog
+  --offline               Do not check for internet connection before performing install.
 
 ENVIRONMENT_DIR is a path for the new environment directory. The last
 part of this path will be used as the environment name.
@@ -44,12 +46,13 @@ part of this path will be used as the environment name.
         create_sysadmin=not opts['--no-sysadmin'],
         ckan_version=opts['--ckan'],
         address=opts['--address'],
+        offline=opts['--offline'],
         log_syslog=opts['--syslog']
         )
 
 
 def create_environment(environment_dir, port, ckan_version, create_skin,
-        start_web, create_sysadmin, address, log_syslog=False):
+        start_web, create_sysadmin, address, offline=False, log_syslog=False):
 
     # FIXME: only 2.3 preload supported at the moment
     environment = Environment.new(environment_dir, '2.3', port=port)
@@ -84,7 +87,8 @@ def create_environment(environment_dir, port, ckan_version, create_skin,
             write('.')
         write('\n')
 
-        return finish_init(environment, start_web, create_sysadmin, address, log_syslog=log_syslog)
+        return finish_init(environment, start_web, create_sysadmin, address, offline=offline,
+                           log_syslog=log_syslog)
     except:
         # Make sure that it doesn't get printed right after the dots
         # by printing a newline
@@ -97,13 +101,14 @@ def init(opts):
     """Initialize a purged environment or copied environment directory
 
 Usage:
-  datacats init [-ni] [--syslog] [--address=IP] [ENVIRONMENT_DIR [PORT]]
+  datacats init [-ni] [--syslog] [--address=IP] [--offline] [ENVIRONMENT_DIR [PORT]]
 
 Options:
   --address=IP            Address to listen on (Linux-only) [default: 127.0.0.1]
   -i --image-only         Create the environment but don't start containers
   -n --no-sysadmin        Don't prompt for an initial sysadmin user account
   --syslog                Log to the syslog
+  --offline               Do not check for internet connection before performing install.
 
 ENVIRONMENT_DIR is an existing datacats environment directory. Defaults to '.'
 """
@@ -114,6 +119,7 @@ ENVIRONMENT_DIR is an existing datacats environment directory. Defaults to '.'
     create_sysadmin = not opts['--no-sysadmin']
     environment_dir = abspath(environment_dir or '.')
     log_syslog = opts['--syslog']
+    offline = opts['--offline']
 
     environment = Environment.load(environment_dir)
     environment.address = address
@@ -140,14 +146,15 @@ ENVIRONMENT_DIR is an existing datacats environment directory. Defaults to '.'
         print
         raise
 
-    return finish_init(environment, start_web, create_sysadmin, address, log_syslog=log_syslog)
+    return finish_init(environment, start_web, create_sysadmin, address, offline=offline,
+            log_syslog=log_syslog)
 
 
-def finish_init(environment, start_web, create_sysadmin, address, log_syslog=False):
+def finish_init(environment, start_web, create_sysadmin, address, offline=False, log_syslog=False):
     """
     Common parts of create and init: Install, init db, start site, sysadmin
     """
-    install_all(environment, False, verbose=False)
+    install_all(environment, False, verbose=False, offline=offline)
 
     write('Initializing database')
     environment.ckan_db_init()

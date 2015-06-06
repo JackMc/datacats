@@ -20,18 +20,20 @@ def install(environment, opts):
     """Install or reinstall Python packages within this environment
 
 Usage:
-  datacats install [-cq] [--address=IP] [ENVIRONMENT]
+  datacats install [-cq] [--address=IP] [--offline] [ENVIRONMENT]
 
 Options:
   --address=IP          The address to bind to when reloading after install [default: 127.0.0.1]
   -c --clean            Reinstall packages into a clean virtualenv
   -q --quiet            Do not show output from installing packages and requirements.
+  --offline             Do not check for internet connection before performing install.
 
 ENVIRONMENT may be an environment name or a path to an environment directory.
 Default: '.'
 """
     environment.require_data()
-    install_all(environment, opts['--clean'], verbose=not opts['--quiet'])
+    install_all(environment, opts['--clean'], verbose=not opts['--quiet'],
+                offline=opts['--offline'])
 
     if 'web' in environment.containers_running():
         # FIXME: reload without changing debug setting?
@@ -43,10 +45,11 @@ Default: '.'
             '--syslog': False})
 
 
-def install_all(environment, clean, verbose=False):
-    logs = check_connectivity()
-    if logs.strip():
-        raise DatacatsError(logs)
+def install_all(environment, clean, verbose=False, offline=False):
+    if not offline:
+        logs = check_connectivity()
+        if logs.strip():
+            raise DatacatsError(logs)
 
     srcdirs = set()
     reqdirs = set()
@@ -65,7 +68,6 @@ def install_all(environment, clean, verbose=False):
         reqdirs.remove('ckan')
     except KeyError:
         raise DatacatsError('ckan not found in environment directory')
-        return
 
     if clean:
         environment.clean_virtualenv()
