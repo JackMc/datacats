@@ -382,14 +382,12 @@ class Environment(object):
         Return True if all the expected datadir files are present
         """
         if (not isdir(self.sitedir + '/files')
-                or not isdir(self.sitedir + '/run')
-                or not isdir(self.sitedir + '/search')):
+            or not isdir(self.sitedir + '/run')):
             return False
         if is_boot2docker():
             return True
         return (
-            isdir(self.datadir + '/venv') and
-            isdir(self.sitedir + '/data'))
+            isdir(self.datadir + '/venv'))
 
     def require_data(self):
         """
@@ -419,12 +417,9 @@ class Environment(object):
             makedirs(self.sitedir, mode=0o700)
         except OSError:
             raise DatacatsError('Site environment {} already exists.'.format(self.site_name))
-        # venv isn't site-specific, the rest are.
-        makedirs(self.sitedir + '/search')
         if not is_boot2docker():
             if not isdir(self.datadir + '/venv'):
                 makedirs(self.datadir + '/venv')
-            makedirs(self.sitedir + '/data')
         makedirs(self.sitedir + '/files')
         makedirs(self.sitedir + '/run')
 
