@@ -99,12 +99,13 @@ def reset(environment, opts):
 database and recreate the administrator account.
 
 Usage:
-  datacats reset [-yn] [-s NAME] [ENVIRONMENT]
+  datacats reset [-yni] [-s NAME] [ENVIRONMENT]
 
 Options:
   -s --site=NAME          The site to reset [default: primary]
   -y --yes                Respond yes to all questions
-  -n --no-sysadmin        Don't prompt for a sysadmin password"""
+  -n --no-sysadmin        Don't prompt for a sysadmin password
+  -i --image-only         Create the environment but don't start containers"""
     # pylint: disable=unused-argument
     if not opts['--yes']:
         y_or_n_prompt('Reset will remove all data related to the '
@@ -120,7 +121,7 @@ Options:
         'PORT': None,
         '--syslog': None,
         '--address': '127.0.0.1',
-        '--image-only': False,
+        '--image-only': opts['--image-only'],
         '--no-sysadmin': opts['--no-sysadmin']
         }, no_install=True)
 
