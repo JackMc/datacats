@@ -129,8 +129,8 @@ def init(opts, no_install=False):
     """Initialize a purged environment or copied environment directory
 
 Usage:
-  datacats init [-in] [--syslog] [-s NAME] [--address=IP]
-                [ENVIRONMENT_DIR [PORT]]
+  datacats init [-in] [--syslog] [-s NAME] [--clean] [--address=IP]
+                [--quiet] [ENVIRONMENT_DIR [PORT]]
 
 Options:
   --address=IP            Address to listen on (Linux-only) [default: 127.0.0.1]
@@ -138,6 +138,8 @@ Options:
   -n --no-sysadmin        Don't prompt for an initial sysadmin user account
   -s --site=NAME          Pick a site to initialize [default: primary]
   --syslog                Log to the syslog
+  --clean                 Do a clean install
+  --quiet                 Do not be verbose
 
 ENVIRONMENT_DIR is an existing datacats environment directory. Defaults to '.'
 """
@@ -186,16 +188,17 @@ ENVIRONMENT_DIR is an existing datacats environment directory. Defaults to '.'
         raise
 
     return finish_init(environment, start_web, create_sysadmin, address,
-                       log_syslog=log_syslog, do_install=not no_install)
+                       log_syslog=log_syslog, do_install=not no_install,
+                       clean_install=opts['--clean'], verbose=not opts['--quiet'])
 
 
 def finish_init(environment, start_web, create_sysadmin, address, log_syslog=False,
-                do_install=True):
+                do_install=True, clean_install=False, verbose=False):
     """
     Common parts of create and init: Install, init db, start site, sysadmin
     """
     if do_install:
-        install_all(environment, False, verbose=False)
+        install_all(environment, clean=clean_install, verbose=verbose)
 
     write('Initializing database')
     environment.ckan_db_init()
