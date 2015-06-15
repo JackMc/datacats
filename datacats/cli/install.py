@@ -68,6 +68,7 @@ def install_all(environment, clean, verbose=False):
 
     if clean:
         environment.clean_virtualenv()
+        environment.install_extra()
 
     for s in ['ckan'] + sorted(srcdirs):
         if verbose:

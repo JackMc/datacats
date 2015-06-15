@@ -28,7 +28,7 @@ from datacats.docker import (web_command, run_container, remove_container,
 from datacats.template import ckan_extension_template
 from datacats.scripts import (WEB, SHELL, PASTER, PASTER_CD, PURGE,
     RUN_AS_USER, INSTALL_REQS, CLEAN_VIRTUALENV, INSTALL_PACKAGE,
-    COMPILE_LESS, INSTALL_POSTGIS)
+    COMPILE_LESS, INSTALL_POSTGIS, INSTALL_EXTRA_PACKAGES)
 from datacats.network import wait_for_service_available, ServiceTimeout
 from datacats.migrate import needs_format_conversion
 from datacats.password import generate_password
@@ -492,6 +492,13 @@ class Environment(object):
             args=[],
             rw_venv=True,
             )
+
+    def install_extra(self):
+        self.user_run_script(
+            script=INSTALL_EXTRA_PACKAGES,
+            args=[],
+            rw_venv=True
+        )
 
     def create_source(self):
         """
