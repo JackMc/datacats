@@ -21,7 +21,7 @@ class DatacatsError(Exception):
         super(DatacatsError, self).__init__(message, format_args)
 
     def __str__(self):
-        return self.message.format(*self.format_args)
+        return self.message
 
     def pretty_print(self):
         """
@@ -29,7 +29,7 @@ class DatacatsError(Exception):
         """
         print colored.blue("-" * 40)
         print colored.red("datacats: problem was encountered:")
-        print self.message.format(*self.format_args)
+        print self.message
         print colored.blue("-" * 40)
 
 

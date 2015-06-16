@@ -622,34 +622,31 @@ class Environment(object):
 
         :param retry_seconds: how long to retry waiting for db to start
         """
+        volumes_from, rw = self._pgdata_volumes_and_rw()
         started = time.time()
         while True:
             try:
-                volumes_from, rw = self._pgdata_volumes_and_rw()
-
                 self.run_command(
                     '/usr/lib/ckan/bin/paster --plugin=ckan db init '
                     '-c /project/development.ini',
                     db_links=True,
                     clean_up=True,
                     )
-                self.stop_postgres_and_solr()
-                container = run_container(
-                    command='/scripts/install_postgis.sh',
-                    name=self._get_container_name('postgres'),
-                    image='datacats/postgres',
-                    environment=self.passwords,
-                    ro={INSTALL_POSTGIS: '/scripts/install_postgis.sh'},
-                    rw=rw,
-                    volumes_from=volumes_from)
-                remove_container(container['Id'])
-                self.start_postgres_and_solr()
-                return
+                break
             except WebCommandError as e:
                 print e.message
                 if started + retry_seconds > time.time():
                     raise
-            time.sleep(DB_INIT_RETRY_DELAY)
+
+        container = web_command(
+            command='/scripts/install_postgis.sh',
+            image='datacats/postgres',
+            environment=self.passwords,
+            ro={INSTALL_POSTGIS: '/scripts/install_postgis.sh'},
+            links={self._get_container_name('postgres'): 'db'},
+            rw=rw,
+            volumes_from=volumes_from)
+        remove_container(container['Id'])
 
     def _generate_passwords(self):
         """
@@ -759,8 +756,8 @@ class Environment(object):
                     self.sitedir + '/run/development.ini':
                         '/project/development.ini',
                     WEB: '/scripts/web.sh'}, **ro),
-                links={'datacats_solr_' + self.name + '_' + self.site_name: 'solr',
-                    'datacats_postgres_' + self.name + '_' + self.site_name: 'db'},
+                links={self._get_container_name('solr'): 'solr',
+                    self._get_container_name('postgres'): 'db'},
                 volumes_from=volumes_from,
                 command=command,
                 port_bindings={

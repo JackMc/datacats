@@ -158,7 +158,7 @@ def exec_command(container_name, command, stdout=False, stderr=False, tty=False,
 
 def web_command(command, ro=None, rw=None, links=None, stream_output=None,
                 image='datacats/web', volumes_from=None, commit=False,
-                clean_up=False):
+                clean_up=False, environment=None):
     """
     Run a single command in a web image optionally preloaded with the ckan
     source and virtual envrionment.
@@ -181,7 +181,8 @@ def web_command(command, ro=None, rw=None, links=None, stream_output=None,
         command=command,
         volumes=binds_to_volumes(binds),
         detach=False,
-        host_config=create_host_config(binds=binds))
+        host_config=create_host_config(binds=binds),
+        environment=environment)
     _get_docker().start(
         container=c['Id'],
         links=links,
