@@ -10,6 +10,7 @@ test:
     - datacats create site1 -bn
     - "[ ! -d site1/ckanext-site1theme ]"
     - '[ "$(echo `datacats list`)" == "site1" ]'
+    - '[ "$(cat ~/.datacats/site1/sites/primary/run/development.ini | egrep 127.0.0.1 | wc -l)" == 0 ]'
     - datacats info site1
     - datacats start site1 8999
     - datacats info site1
